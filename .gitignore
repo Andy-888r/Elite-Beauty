@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+
+# Java / Maven
+target/
+
+# uploads
+uploads/
+
+.env
+.env.local
