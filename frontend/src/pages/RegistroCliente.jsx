@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Alert, CircularProgress } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 import { authAPI } from '../services/api';
  
 // Ladas más comunes primero, luego el resto
@@ -45,7 +45,6 @@ export default function RegistroCliente() {
   const [verPass, setVerPass]     = useState(false);
   const [error, setError]         = useState('');
   const [loading, setLoading]     = useState(false);
-  const { login } = useAuth();
   const navigate  = useNavigate();
  
   const handleTelefono = (e) => {
@@ -62,10 +61,10 @@ export default function RegistroCliente() {
     }
     setLoading(true); setError('');
     try {
-      // Guarda el teléfono con lada incluida
       const payload = { ...form, telefono: `${lada} ${form.telefono}` };
-      const res = await authAPI.registrarCliente(payload);
-      login(res.data); navigate('/cliente');
+      await authAPI.registrarCliente(payload);
+      toast.success('Cuenta creada correctamente. Inicia sesion con tus credenciales.');
+      navigate('/login');
     } catch (err) { setError(err.response?.data || 'Error al registrarse'); }
     finally { setLoading(false); }
   };

@@ -93,13 +93,17 @@ export default function OlvideContrasena() {
     /* Botón regresar */
     .eb-back-btn {
       display: inline-flex; align-items: center; gap: 6px;
-      background: none; border: none; cursor: pointer;
-      color: rgba(44,74,30,0.50); font-family: 'Jost', sans-serif;
-      font-size: 0.68rem; letter-spacing: 0.08em;
-      padding: 0; margin-bottom: 20px;
-      transition: color 0.2s;
+      background: rgba(85,136,59,0.10); border: 1px solid rgba(44,74,30,0.35);
+      cursor: pointer;
+      color: #2C4A1E; font-family: 'Jost', sans-serif; font-weight: 500;
+      font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 8px 14px; margin-bottom: 20px; border-radius: 2px;
+      transition: all 0.2s;
     }
-    .eb-back-btn:hover { color: #55883B; }
+    .eb-back-btn:hover {
+      background: #2C4A1E; color: #F8FAF6; border-color: #2C4A1E;
+      box-shadow: 0 3px 12px rgba(44,74,30,0.25);
+    }
  
     .eb-card-header { text-align: center; margin-bottom: 24px; }
     .eb-logo-box {
@@ -187,17 +191,22 @@ export default function OlvideContrasena() {
  
     .eb-link-row {
       margin-top: 16px; text-align: center;
-      font-family: 'Jost', sans-serif; font-size: 0.70rem;
-      color: rgba(44,74,30,0.45); letter-spacing: 0.04em;
+      font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 400;
+      color: #2C4A1E; letter-spacing: 0.04em;
     }
-    .eb-link-row a { color: #55883B; text-decoration: none; font-style: italic; }
-    .eb-link-row a:hover { color: #2C4A1E; }
+    .eb-link-row a {
+      color: #2C4A1E; text-decoration: underline; font-weight: 600;
+      text-underline-offset: 3px;
+    }
+    .eb-link-row a:hover { color: #55883B; }
     .eb-link-row button {
       background: none; border: none; cursor: pointer;
-      color: #55883B; font-style: italic; font-size: 0.70rem;
-      font-family: 'Jost', sans-serif; padding: 0; letter-spacing: 0.04em;
+      color: #2C4A1E; font-weight: 600; font-size: 0.78rem;
+      font-family: 'Jost', sans-serif; padding: 2px 6px;
+      letter-spacing: 0.04em; text-decoration: underline;
+      text-underline-offset: 3px;
     }
-    .eb-link-row button:hover { color: #2C4A1E; }
+    .eb-link-row button:hover { color: #55883B; }
  
     .eb-success { text-align: center; padding: 20px 0; }
     .eb-success-icon {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box } from '@mui/material';
 import { ShoppingCart, History, Person, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -45,56 +45,26 @@ const extraStyles = `
   .eb-product-meta { font-family:'Jost',sans-serif; font-size:0.72rem; color:#55883B; letter-spacing:0.06em; margin-bottom:10px; }
   .eb-product-price { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:600; color:#9A6735; }
  
-  /* Cards de productos en modal banner */
-  .eb-banner-prods-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
-  }
-  .eb-banner-prod-card {
-    border-radius: 3px;
-    overflow: hidden;
-    cursor: pointer;
-    border: 1px solid rgba(85,136,59,0.15);
-    transition: transform 0.2s, box-shadow 0.2s;
-    background: rgba(248,252,244,0.95);
-  }
-  .eb-banner-prod-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(44,74,30,0.16);
-    border-color: rgba(85,136,59,0.35);
-  }
-  .eb-banner-prod-img {
-    width: 100%; height: 130px; object-fit: cover; display: block;
-  }
-  .eb-banner-prod-placeholder {
-    width: 100%; height: 130px;
-    background: rgba(85,136,59,0.08);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2rem; color: rgba(85,136,59,0.50);
-  }
-  .eb-banner-prod-body { padding: 10px 12px; }
-  .eb-banner-prod-name {
-    font-family: 'Jost', sans-serif; font-size: 0.80rem; font-weight: 500;
-    color: #2C4A1E; margin-bottom: 2px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .eb-banner-prod-meta {
-    font-family: 'Jost', sans-serif; font-size: 0.65rem; color: #55883B;
-    letter-spacing: 0.04em; margin-bottom: 6px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .eb-banner-prod-price {
-    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
-    font-weight: 600; color: #9A6735;
-  }
-  .eb-banner-ver-tienda {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-family: 'Jost', sans-serif; font-size: 0.58rem;
-    font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
-    color: #55883B; float: right; padding-top: 2px;
-  }
+  /* Carrusel de productos en modal */
+  .eb-prod-slider-wrap { position:relative; margin-top:12px; padding:0 18px; }
+  .eb-prod-slider { display:flex; gap:12px; overflow-x:auto; scroll-behavior:smooth; padding-bottom:6px; scrollbar-width:none; }
+  .eb-prod-slider::-webkit-scrollbar { display:none; }
+  .eb-prod-slide-btn { position:absolute; top:45%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; background:#2C4A1E; border:none; cursor:pointer; color:#C1E899; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 12px rgba(44,74,30,0.35); z-index:2; transition:background 0.2s; }
+  .eb-prod-slide-btn:hover { background:#55883B; }
+  .eb-prod-slide-btn.left  { left:-4px; }
+  .eb-prod-slide-btn.right { right:-4px; }
+  .eb-banner-prod-card { flex:0 0 155px; border-radius:3px; overflow:hidden; cursor:pointer; border:1px solid rgba(85,136,59,0.15); transition:transform 0.2s, box-shadow 0.2s; background:rgba(248,252,244,0.95); }
+  .eb-banner-prod-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(44,74,30,0.16); border-color:rgba(85,136,59,0.35); }
+  .eb-banner-prod-img { width:100%; height:120px; object-fit:cover; display:block; }
+  .eb-banner-prod-placeholder { width:100%; height:120px; background:rgba(85,136,59,0.08); display:flex; align-items:center; justify-content:center; font-size:2rem; color:rgba(85,136,59,0.50); }
+  .eb-banner-prod-body { padding:9px 10px; }
+  .eb-banner-prod-name { font-family:'Jost',sans-serif; font-size:0.78rem; font-weight:500; color:#2C4A1E; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .eb-banner-prod-meta { font-family:'Jost',sans-serif; font-size:0.62rem; color:#55883B; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .eb-banner-prod-price { font-family:'Cormorant Garamond',serif; font-size:1.05rem; font-weight:600; color:#9A6735; }
+  .eb-banner-ver-tienda { display:inline-flex; align-items:center; font-family:'Jost',sans-serif; font-size:0.56rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#55883B; float:right; padding-top:2px; }
+  .eb-slider-dots { display:flex; justify-content:center; gap:5px; margin-top:10px; }
+  .eb-slider-dot { width:6px; height:6px; border-radius:50%; background:rgba(85,136,59,0.25); transition:all 0.3s; cursor:pointer; }
+  .eb-slider-dot.active { background:#55883B; transform:scale(1.3); }
 `;
  
 export default function ClienteDashboard() {
@@ -105,6 +75,8 @@ export default function ClienteDashboard() {
   const [slide, setSlide]         = useState(0);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [bannerSeleccionado, setBannerSeleccionado]     = useState(null);
+  const [sliderIdx, setSliderIdx] = useState(0);
+  const sliderRef = useRef(null);
  
   useEffect(() => {
     bannersAPI.listarActivos().then(r => setBanners(r.data)).catch(() => {});
@@ -121,7 +93,28 @@ export default function ClienteDashboard() {
     return () => clearInterval(t);
   }, [banners.length]);
  
-  const b = banners[slide];
+  const b     = banners[slide];
+  const prods = bannerSeleccionado?.productos || [];
+  const CARD_W = 167;
+  const maxIdx = Math.max(0, prods.length - 1);
+ 
+  const sliderPrev = () => {
+    const next = Math.max(0, sliderIdx - 1);
+    setSliderIdx(next);
+    sliderRef.current?.scrollTo({ left: next * CARD_W, behavior: 'smooth' });
+  };
+  const sliderNext = () => {
+    const next = Math.min(maxIdx, sliderIdx + 1);
+    setSliderIdx(next);
+    sliderRef.current?.scrollTo({ left: next * CARD_W, behavior: 'smooth' });
+  };
+ 
+  // Navega a tienda y pasa el ID para hacer highlight
+  const verEnTienda = (idProducto) => {
+    setProductoSeleccionado(null);
+    setBannerSeleccionado(null);
+    navigate('/cliente/compras', { state: { highlightId: idProducto } });
+  };
  
   return (
     <Box sx={{ display:'flex', bgcolor:'#EDF5E4', minHeight:'100vh' }} className="eb-page">
@@ -142,7 +135,7 @@ export default function ClienteDashboard() {
             <div className="eb-carousel" style={{ cursor:'pointer' }}
               onClick={() => {
                 if (b?.productos?.length === 1) setProductoSeleccionado(b.productos[0]);
-                else if (b?.productos?.length > 1) setBannerSeleccionado(b);
+                else if (b?.productos?.length > 1) { setSliderIdx(0); setBannerSeleccionado(b); }
               }}>
               <img src={`${BASE}${b.imagenPath}`} alt={b.titulo} />
               <div className="eb-carousel-gradient" />
@@ -152,12 +145,8 @@ export default function ClienteDashboard() {
               </div>
               {banners.length > 1 && (
                 <>
-                  <button className="eb-carousel-btn prev" onClick={e => { e.stopPropagation(); anterior(); }}>
-                    <ChevronLeft />
-                  </button>
-                  <button className="eb-carousel-btn next" onClick={e => { e.stopPropagation(); siguiente(); }}>
-                    <ChevronRight />
-                  </button>
+                  <button className="eb-carousel-btn prev" onClick={e => { e.stopPropagation(); anterior(); }}><ChevronLeft /></button>
+                  <button className="eb-carousel-btn next" onClick={e => { e.stopPropagation(); siguiente(); }}><ChevronRight /></button>
                   <div className="eb-carousel-dots">
                     {banners.map((_, i) => (
                       <div key={i} className={`eb-carousel-dot ${i===slide?'active':''}`}
@@ -202,21 +191,14 @@ export default function ClienteDashboard() {
         </div>
       </Box>
  
-      {/* ── Modal producto individual ── */}
+      {/* Modal producto */}
       {productoSeleccionado && (
-        <div style={{
-          position:'fixed', inset:0, backgroundColor:'rgba(0,0,0,0.55)',
-          zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center',
-        }} onClick={() => setProductoSeleccionado(null)}>
-          <div style={{
-            backgroundColor:'#F8FAF6', borderRadius:'4px',
-            maxWidth:'480px', width:'90%',
-            boxShadow:'0 20px 60px rgba(44,74,30,0.25)',
-            border:'1px solid rgba(201,168,76,0.35)', overflow:'hidden',
-          }} onClick={e => e.stopPropagation()}>
+        <div style={{ position:'fixed', inset:0, backgroundColor:'rgba(0,0,0,0.55)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center' }}
+          onClick={() => setProductoSeleccionado(null)}>
+          <div style={{ backgroundColor:'#F8FAF6', borderRadius:'4px', maxWidth:'480px', width:'90%', boxShadow:'0 20px 60px rgba(44,74,30,0.25)', border:'1px solid rgba(201,168,76,0.35)', overflow:'hidden' }}
+            onClick={e => e.stopPropagation()}>
             {productoSeleccionado.imagenPath
-              ? <img src={`${BASE}${productoSeleccionado.imagenPath}`} alt={productoSeleccionado.nombre}
-                  style={{ width:'100%', height:'260px', objectFit:'cover' }} />
+              ? <img src={`${BASE}${productoSeleccionado.imagenPath}`} alt={productoSeleccionado.nombre} style={{ width:'100%', height:'260px', objectFit:'cover' }} />
               : <div style={{ width:'100%', height:'260px', background:'rgba(85,136,59,0.10)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'3rem', color:'#55883B' }}>◈</div>
             }
             <div style={{ padding:'24px 28px' }}>
@@ -241,7 +223,7 @@ export default function ClienteDashboard() {
                     Cerrar
                   </button>
                   <button style={{ background:'linear-gradient(135deg,#2C4A1E,#55883B)', color:'#F4F9F0', border:'none', borderRadius:'2px', padding:'10px 20px', cursor:'pointer', fontFamily:'Jost,sans-serif', fontSize:'0.65rem', letterSpacing:'0.16em', textTransform:'uppercase' }}
-                    onClick={() => { setProductoSeleccionado(null); navigate('/cliente/compras'); }}>
+                    onClick={() => verEnTienda(productoSeleccionado.id)}>
                     Ver en tienda
                   </button>
                 </div>
@@ -251,35 +233,24 @@ export default function ClienteDashboard() {
         </div>
       )}
  
-      {/* ── Modal banner con productos como cards ── */}
+      {/* Modal banner con carrusel */}
       {bannerSeleccionado && (
-        <div style={{
-          position:'fixed', inset:0, backgroundColor:'rgba(0,0,0,0.65)',
-          zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center',
-          padding:'20px',
-        }} onClick={() => setBannerSeleccionado(null)}>
-          <div style={{
-            backgroundColor:'#F8FAF6', borderRadius:'4px',
-            maxWidth:'720px', width:'100%',
-            maxHeight:'88vh', overflowY:'auto',
-            boxShadow:'0 20px 60px rgba(44,74,30,0.30)',
-            border:'1px solid rgba(201,168,76,0.35)',
-            overflow:'hidden',
-          }} onClick={e => e.stopPropagation()}>
+        <div style={{ position:'fixed', inset:0, backgroundColor:'rgba(0,0,0,0.65)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
+          onClick={() => setBannerSeleccionado(null)}>
+          <div style={{ backgroundColor:'#F8FAF6', borderRadius:'4px', maxWidth:'680px', width:'100%', maxHeight:'88vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(44,74,30,0.30)', border:'1px solid rgba(201,168,76,0.35)' }}
+            onClick={e => e.stopPropagation()}>
  
-            {/* Imagen del banner */}
             <div style={{ position:'relative' }}>
               <img src={`${BASE}${bannerSeleccionado.imagenPath}`} alt={bannerSeleccionado.titulo}
-                style={{ width:'100%', height:'220px', objectFit:'cover', display:'block' }} />
-              {/* Overlay con título */}
+                style={{ width:'100%', height:'200px', objectFit:'cover', display:'block' }} />
               <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'60%', background:'linear-gradient(transparent, rgba(20,40,12,0.80))' }} />
               {bannerSeleccionado.titulo && (
-                <div style={{ position:'absolute', bottom:20, left:24, color:'#E6F0DC' }}>
-                  <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.8rem', fontWeight:600, margin:0, textShadow:'0 2px 12px rgba(0,0,0,0.5)' }}>
+                <div style={{ position:'absolute', bottom:16, left:22, color:'#E6F0DC' }}>
+                  <h2 style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'1.6rem', fontWeight:600, margin:0, textShadow:'0 2px 12px rgba(0,0,0,0.5)' }}>
                     {bannerSeleccionado.titulo}
                   </h2>
                   {bannerSeleccionado.descripcion && (
-                    <p style={{ fontFamily:'Jost,sans-serif', fontSize:'0.78rem', margin:'4px 0 0', color:'rgba(230,240,220,0.85)', letterSpacing:'0.06em' }}>
+                    <p style={{ fontFamily:'Jost,sans-serif', fontSize:'0.74rem', margin:'3px 0 0', color:'rgba(230,240,220,0.85)' }}>
                       {bannerSeleccionado.descripcion}
                     </p>
                   )}
@@ -287,45 +258,65 @@ export default function ClienteDashboard() {
               )}
             </div>
  
-            {/* Cuerpo con productos */}
-            <div style={{ padding:'24px 28px 28px' }}>
- 
-              {bannerSeleccionado.productos?.length > 0 ? (
+            <div style={{ padding:'20px 24px 24px' }}>
+              {prods.length > 0 ? (
                 <>
-                  <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'16px' }}>
-                    <p style={{ fontFamily:'Jost,sans-serif', fontSize:'0.62rem', fontWeight:500, letterSpacing:'0.20em', textTransform:'uppercase', color:'#9A6735', margin:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'12px' }}>
+                    <p style={{ fontFamily:'Jost,sans-serif', fontSize:'0.60rem', fontWeight:500, letterSpacing:'0.20em', textTransform:'uppercase', color:'#9A6735', margin:0 }}>
                       Productos en esta promoción
                     </p>
-                    <span style={{ fontFamily:'Jost,sans-serif', fontSize:'0.60rem', background:'rgba(85,136,59,0.12)', color:'#55883B', padding:'2px 10px', borderRadius:'2px', letterSpacing:'0.12em' }}>
-                      {bannerSeleccionado.productos.length} producto{bannerSeleccionado.productos.length > 1 ? 's' : ''}
+                    <span style={{ fontFamily:'Jost,sans-serif', fontSize:'0.58rem', background:'rgba(85,136,59,0.12)', color:'#55883B', padding:'2px 8px', borderRadius:'2px' }}>
+                      {prods.length} producto{prods.length > 1 ? 's' : ''}
                     </span>
                     <div style={{ flex:1, height:'1px', background:'rgba(85,136,59,0.15)' }} />
                   </div>
  
-                  {/* Grid de cards con imagen */}
-                  <div className="eb-banner-prods-grid">
-                    {bannerSeleccionado.productos.map(p => (
-                      <div key={p.id} className="eb-banner-prod-card"
-                        onClick={() => { setBannerSeleccionado(null); setProductoSeleccionado(p); }}>
-                        {p.imagenPath
-                          ? <img className="eb-banner-prod-img" src={`${BASE}${p.imagenPath}`} alt={p.nombre} />
-                          : <div className="eb-banner-prod-placeholder">◈</div>
-                        }
-                        <div className="eb-banner-prod-body">
-                          <div className="eb-banner-prod-name">{p.nombre}</div>
-                          {(p.marca || p.categoria) && (
-                            <div className="eb-banner-prod-meta">
-                              {[p.marca, p.categoria].filter(Boolean).join(' · ')}
+                  {/* ── Carrusel ── */}
+                  <div className="eb-prod-slider-wrap">
+                    {sliderIdx > 0 && (
+                      <button className="eb-prod-slide-btn left" onClick={sliderPrev}>
+                        <ChevronLeft style={{ fontSize:16 }} />
+                      </button>
+                    )}
+                    <div className="eb-prod-slider" ref={sliderRef}>
+                      {prods.map(p => (
+                        <div key={p.id} className="eb-banner-prod-card"
+                          onClick={() => { setBannerSeleccionado(null); setProductoSeleccionado(p); }}>
+                          {p.imagenPath
+                            ? <img className="eb-banner-prod-img" src={`${BASE}${p.imagenPath}`} alt={p.nombre} />
+                            : <div className="eb-banner-prod-placeholder">◈</div>
+                          }
+                          <div className="eb-banner-prod-body">
+                            <div className="eb-banner-prod-name">{p.nombre}</div>
+                            {(p.marca || p.categoria) && (
+                              <div className="eb-banner-prod-meta">{[p.marca, p.categoria].filter(Boolean).join(' · ')}</div>
+                            )}
+                            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                              <span className="eb-banner-prod-price">${p.precio?.toFixed(2)}</span>
+                              <span className="eb-banner-ver-tienda">Ver →</span>
                             </div>
-                          )}
-                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                            <span className="eb-banner-prod-price">${p.precio?.toFixed(2)}</span>
-                            <span className="eb-banner-ver-tienda">Ver →</span>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                    {sliderIdx < maxIdx && (
+                      <button className="eb-prod-slide-btn right" onClick={sliderNext}>
+                        <ChevronRight style={{ fontSize:16 }} />
+                      </button>
+                    )}
                   </div>
+ 
+                  {prods.length > 1 && (
+                    <div className="eb-slider-dots">
+                      {prods.map((_, i) => (
+                        <div key={i} className={`eb-slider-dot ${i === sliderIdx ? 'active' : ''}`}
+                          onClick={() => {
+                            setSliderIdx(i);
+                            sliderRef.current?.scrollTo({ left: i * CARD_W, behavior:'smooth' });
+                          }} />
+                      ))}
+                    </div>
+                  )}
                 </>
               ) : (
                 <p style={{ fontFamily:'Jost,sans-serif', fontSize:'0.78rem', color:'rgba(85,136,59,0.60)', textAlign:'center', padding:'20px 0' }}>
@@ -333,13 +324,12 @@ export default function ClienteDashboard() {
                 </p>
               )}
  
-              {/* Acciones */}
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'20px', paddingTop:'16px', borderTop:'1px solid rgba(85,136,59,0.12)' }}>
-                <button style={{ background:'none', border:'1px solid rgba(85,136,59,0.35)', borderRadius:'2px', padding:'10px 18px', cursor:'pointer', fontFamily:'Jost,sans-serif', fontSize:'0.65rem', letterSpacing:'0.16em', textTransform:'uppercase', color:'#55883B' }}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'18px', paddingTop:'14px', borderTop:'1px solid rgba(85,136,59,0.12)' }}>
+                <button style={{ background:'none', border:'1px solid rgba(85,136,59,0.35)', borderRadius:'2px', padding:'9px 16px', cursor:'pointer', fontFamily:'Jost,sans-serif', fontSize:'0.65rem', letterSpacing:'0.16em', textTransform:'uppercase', color:'#55883B' }}
                   onClick={() => setBannerSeleccionado(null)}>
                   Cerrar
                 </button>
-                <button style={{ background:'linear-gradient(135deg,#2C4A1E,#55883B)', color:'#F4F9F0', border:'none', borderRadius:'2px', padding:'10px 20px', cursor:'pointer', fontFamily:'Jost,sans-serif', fontSize:'0.65rem', letterSpacing:'0.16em', textTransform:'uppercase' }}
+                <button style={{ background:'linear-gradient(135deg,#2C4A1E,#55883B)', color:'#F4F9F0', border:'none', borderRadius:'2px', padding:'9px 18px', cursor:'pointer', fontFamily:'Jost,sans-serif', fontSize:'0.65rem', letterSpacing:'0.16em', textTransform:'uppercase' }}
                   onClick={() => { setBannerSeleccionado(null); navigate('/cliente/compras'); }}>
                   Ir a la tienda
                 </button>
@@ -348,7 +338,6 @@ export default function ClienteDashboard() {
           </div>
         </div>
       )}
- 
     </Box>
   );
 }

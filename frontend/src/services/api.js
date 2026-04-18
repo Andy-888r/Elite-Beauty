@@ -51,6 +51,11 @@ export const clienteAPI = {
   subirFoto: (id, fd) => api.post(`/cliente/${id}/foto`, fd, { headers: { 'Content-Type': 'multipart/form-data' } }),
   historial: (id) => api.get(`/cliente/${id}/historial`),
   comprar: (data) => api.post('/cliente/compra', data, { responseType: 'blob' }),
+  descargarTicket: (id, idOrden) =>
+    api.get(`/cliente/${id}/ticket`, {
+      params: { idOrden },
+      responseType: 'blob'
+    }),
 };
 
 export const adminAPI = {

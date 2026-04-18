@@ -23,22 +23,43 @@ public class CompraService {
     @Autowired private InventarioRepository inventarioRepo;
     @Autowired private HistorialMovimientoRepository movimientoRepo;
  
+    public static class ResultadoCompra {
+        public final double total;
+        public final String idOrden;
+        public ResultadoCompra(double total, String idOrden) {
+            this.total = total;
+            this.idOrden = idOrden;
+        }
+    }
+
     @Transactional
-    public double procesarCompra(CompraRequest req) {
+    public ResultadoCompra procesarCompra(CompraRequest req) {
         Cliente cliente = null;
         if (req.getIdCliente() != null) {
             cliente = clienteRepo.findById(req.getIdCliente()).orElse(null);
         }
+
+        String idOrden = java.util.UUID.randomUUID().toString();
+
         double total = 0;
         for (CompraRequest.ItemCompra item : req.getItems()) {
             Producto prod = productoRepo.findById(item.getIdProducto())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + item.getIdProducto()));
+
+            Integer stockDisponible = inventarioRepo.findByProductoId(prod.getId())
+                    .map(inv -> inv.getStock()).orElse(0);
+            if (stockDisponible < item.getCantidad()) {
+                throw new RuntimeException("Stock insuficiente para " + prod.getNombre()
+                        + " (disponible: " + stockDisponible + ")");
+            }
+
             double subtotal = item.getPrecio() * item.getCantidad();
             total += subtotal;
             HistorialCompra hc = new HistorialCompra();
             hc.setCliente(cliente); hc.setProducto(prod);
             hc.setCantidad(item.getCantidad()); hc.setTotal(subtotal);
             hc.setFecha(LocalDateTime.now());
+            hc.setIdOrden(idOrden);
             historialCompraRepo.save(hc);
             inventarioRepo.findByProductoId(prod.getId()).ifPresent(inv -> {
                 int nuevoStock = Math.max(0, inv.getStock() - item.getCantidad());
@@ -52,10 +73,11 @@ public class CompraService {
                 movimientoRepo.save(mov);
             });
         }
-        return total;
+        return new ResultadoCompra(total, idOrden);
     }
  
     public byte[] generarTicketPDF(String nombreCliente,
+                                    String correoCliente,
                                     List<CompraRequest.ItemCompra> items,
                                     List<String> nombresProductos,
                                     double total) {
@@ -203,7 +225,9 @@ public class CompraService {
             // ── Meta ──
             PdfPTable tMeta = new PdfPTable(2); tMeta.setWidthPercentage(100);
             tMeta.setWidths(new float[]{50, 50}); tMeta.setSpacingBefore(2f); tMeta.setSpacingAfter(4f);
-            tMeta.addCell(metaCelda("CLIENTE", nombreCliente != null ? nombreCliente : "Cliente", "Compra registrada",
+            String correoSub = (correoCliente != null && !correoCliente.isEmpty())
+                ? correoCliente : "Compra registrada";
+            tMeta.addCell(metaCelda("CLIENTE", nombreCliente != null ? nombreCliente : "Cliente", correoSub,
                 fMetaLabel, fMetaVal, fMetaSub, META_BG1, BORDE, true, false));
             tMeta.addCell(metaCelda("FECHA", fecha, "Hora: " + hora,
                 fMetaLabel, fMetaVal, fMetaSub, META_BG2, BORDE, false, true));

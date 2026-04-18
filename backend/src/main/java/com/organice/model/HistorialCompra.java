@@ -4,12 +4,17 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "historial_compras")
 @Data
 @NoArgsConstructor
 public class HistorialCompra {
+
+
+
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,4 +34,10 @@ public class HistorialCompra {
     private Double total;
 
     private LocalDateTime fecha = LocalDateTime.now();
+
+@Column(name = "id_orden")
+@JsonProperty("idOrden")
+private String idOrden;
+
+
 }
