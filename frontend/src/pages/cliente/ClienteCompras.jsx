@@ -144,10 +144,8 @@ export default function ClienteCompras() {
 
   const handleVaciar = () => {
     if (carrito.length === 0) return;
-    if (window.confirm('Vaciar todo el carrito?')) {
       limpiarCarrito();
       toast.info('Carrito vaciado');
-    }
   };
 
   const iva      = total * IVA_RATE;
