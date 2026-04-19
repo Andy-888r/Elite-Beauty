@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Alert, CircularProgress } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Visibility, VisibilityOff, ArrowBack } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { authAPI } from '../services/api';
@@ -79,6 +79,16 @@ export default function Login() {
       box-shadow: 0 20px 60px rgba(44,74,30,0.18), 0 4px 20px rgba(201,168,76,0.15), inset 0 1px 0 rgba(255,255,255,0.80);
       border-radius: 4px; padding: 48px 44px;
     }
+    .eb-back-btn {
+      position: absolute; top: 16px; left: 16px;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: 1px solid rgba(85,136,59,0.35);
+      border-radius: 2px; padding: 6px 12px 6px 10px; cursor: pointer;
+      font-family: 'Jost', sans-serif; font-size: 0.6rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: #55883B; transition: all 0.2s;
+    }
+    .eb-back-btn:hover { background: rgba(85,136,59,0.08); color: #2C4A1E; border-color: rgba(85,136,59,0.55); }
     .eb-login-logo-wrap {
       display: flex; flex-direction: column; align-items: center; margin-bottom: 36px;
     }
@@ -168,6 +178,9 @@ export default function Login() {
       <style>{styles}</style>
       <div className="eb-marble" />
       <div className="eb-login-card">
+        <button type="button" className="eb-back-btn" onClick={() => navigate('/')}>
+          <ArrowBack style={{ fontSize: 14 }} /> Regresar
+        </button>
         <div className="eb-login-logo-wrap">
           <div className="eb-login-logo-box">
             <img src="/logo_elite_beauty.png" alt="Elite Beauty"

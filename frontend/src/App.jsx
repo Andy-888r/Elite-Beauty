@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import InactivityWatcher from './components/shared/InactivityWatcher';
 
 // Páginas comunes
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import RegistroCliente from './pages/RegistroCliente';
 import OlvideContrasena from './pages/OlvideContrasena';
@@ -42,6 +43,7 @@ function AppRoutes() {
       {user && <InactivityWatcher />}
       <Routes>
         {/* Rutas públicas */}
+        <Route path="/" element={!user ? <Landing /> : <Navigate to={`/${user.rol.toLowerCase()}`} replace />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to={`/${user.rol.toLowerCase()}`} />} />
         <Route path="/registro/cliente" element={<RegistroCliente />} />
         <Route path="/olvide-contrasena" element={<OlvideContrasena />} />
@@ -61,8 +63,7 @@ function AppRoutes() {
         <Route path="/cliente/historial" element={<ProtectedRoute roles={['CLIENTE']}><ClienteHistorial /></ProtectedRoute>} />
         <Route path="/cliente/perfil" element={<ProtectedRoute roles={['CLIENTE']}><ClientePerfil /></ProtectedRoute>} />
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

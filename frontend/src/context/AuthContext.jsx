@@ -8,12 +8,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
  
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const savedUser  = localStorage.getItem('user');
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
+    // Cada apertura del proyecto fuerza el cierre de la sesión previa
+    // para que el usuario siempre inicie en el landing público.
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('alertas_stock');
     setLoading(false);
   }, []);
  
